@@ -15,7 +15,7 @@ import { EnhancedModal, notify, EnhancedTable } from "components/index";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { format } from "date-fns";
-import {PeraWalletConnect} from "@perawallet/connect";
+import MyAlgoConnect from '@randlabs/myalgo-connect';
 
 const statuses = ["ALL", "INITIATED", "RUNNING", "FAILED", "SUCCESS"];
 
@@ -27,16 +27,19 @@ export const JobManager = () => {
   const [job, setJob] = useState([]);
   const [dataForTable, setDataForTable] = useState([]);
   const [services, setServices] = useState([]);
-  const [signedLogicSigExists, setSignedLogicSigExists] = useState([]);
+  const [signedLogicSig, setSignedLogicSig] = useState([]);
   const [selectedService, setSelectedService] = useState("");
   const [isFiltered, setIsFiltered] = useState(false);
   const [statusToFilter, setStatusToFilter] = useState(statuses[0]);
   const [accountAddress, setAccountAddress] = useState(null);
-  const isConnectedToPeraWallet = !!accountAddress;
-  const peraWallet = new PeraWalletConnect({
-    shouldShowSignTxnToast: true,
-    chainId: "416002"
-  });
+  const myAlgoWallet = new MyAlgoConnect();
+  const myAlgoWalletSettings = {
+    shouldSelectOneAccount: true,
+    openManager: false
+  };
+  const isConnectedToMyAlgoWallet = !!accountAddress;
+  // LogicSig in base64 that only approves an asset opt-in 
+  const logicSigBase64 = "BTEQgQQSMRQxABIQMRKBABIQRIEBQw==";
 
   const dataTypes = ["Generated Data", "Json Data", "Data URL"];
   const [dataTypeSelected, setSelectedDataType] = useState(dataTypes[0]);
@@ -96,7 +99,7 @@ export const JobManager = () => {
   }, []);
 
   const handleServiceChange = (event) => {
-    if (event.target.value.requires_asset_opt_in && !signedLogicSigExists) {
+    if (event.target.value.requires_asset_opt_in && signedLogicSig.length === 0) {
       setModalIsOpen(false);
       setSignLogicSigModalIsOpen(true);
       notify("Please sign logic sig to opt in to assets");
@@ -107,23 +110,34 @@ export const JobManager = () => {
   };
 
   const handleConnectWalletClick = () => {
-    peraWallet
-      .connect()
-      .then((newAccounts) => {
-        console.log(newAccounts);
-        peraWallet.connector.on("disconnect", handleDisconnectWalletClick);
-        setAccountAddress(newAccounts[0]);
+    myAlgoWallet
+      .connect(myAlgoWalletSettings)
+      .then((account) => {
+        setAccountAddress(account[0]);
       })
       .catch((error) => {
-        if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
-          console.log(error);
-        }
+        console.log(error);
       });
   };
 
-  const handleDisconnectWalletClick = () => {
-    peraWallet.disconnect();
-    setAccountAddress(null);
+  const signLogicSig = () => {
+    myAlgoWallet
+      .signLogicSig(logicSigBase64, accountAddress.address)
+      .then(async (signedLogicSigFromWallet) => {
+        let data = {signedLogicSig: Array.from(signedLogicSigFromWallet)};
+        const response = await API.setSignedLogicSig(data);
+        if (response.success) {
+          setSignedLogicSig(response.data.data.signedLogicSig);
+          setSignLogicSigModalIsOpen(false);
+          notify("Signed logic sig stored successfully!!");
+        } else {
+          setSignLogicSigModalIsOpen(false);
+          notify("Failed to store signed logic sig!!");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const handleDataTypeChange = (event) => {
@@ -133,22 +147,6 @@ export const JobManager = () => {
   useEffect(() => {
     getService();
   }, [getService]);
-
-  useEffect(() => {
-    // Reconnect to the session when the component is mounted
-    peraWallet
-      .reconnectSession()
-      .then((accounts) => {
-        if (peraWallet.connector !== null) {
-          peraWallet.connector.on("disconnect", handleDisconnectWalletClick);
-          if (accounts.length) {
-            setAccountAddress(accounts[0]);
-          }
-        }
-      })
-      .catch((e) => console.log(e));
-  });
-
 
   const resetTableData = (data) => {
     setDataForTable(
@@ -169,19 +167,19 @@ export const JobManager = () => {
     resetTableData(job);
   }, [job]);
 
-  const getSignedLogicSigExists = useCallback(async () => {
-    const response = await API.getSignedLogicSigExists();
+  const getSignedLogicSig = useCallback(async () => {
+    const response = await API.getSignedLogicSig();
     if (response.success) {
-      setSignedLogicSigExists(response.data);
+      setSignedLogicSig(response.data.signedLogicSig);
     } else {
-      setSignedLogicSigExists([]);
+      setSignedLogicSig([]);
       notify("Failed to Fetch Signed LogicSig Exists");
     }
   }, []);
 
   useEffect(() => {
-    getSignedLogicSigExists();
-  }, [getSignedLogicSigExists]);
+    getSignedLogicSig();
+  }, [getSignedLogicSig]);
 
   const initialValues = {
     downloadableURL: "",
@@ -200,6 +198,12 @@ export const JobManager = () => {
   };
 
   const handleSubmit = async (values, { resetForm }) => {
+    if (dataTypeSelected === dataTypes[1] && selectedService.requires_asset_opt_in) {
+      let json = JSON.parse(values.jsonData);
+      json.signedLogicSig = signedLogicSig;
+      values.jsonData = JSON.stringify(json);
+    }
+
     const data = {
       jobName: values.jobName,
       endpoint: selectedService.url,
@@ -325,16 +329,33 @@ export const JobManager = () => {
 
   let signLogicSigModal = (
     <Box>
-      <Typography sx={{ mt: 0 }}>
-        Please sign the logic signature transaction to opt in to assets
-      </Typography>
-      <Button
-        size="middle"
-        variant="contained"
-        onClick={isConnectedToPeraWallet ? handleDisconnectWalletClick : handleConnectWalletClick}
-      >
-        {isConnectedToPeraWallet ? "Disconnect" : "Connect to Pera Wallet"}
-      </Button>
+      {!isConnectedToMyAlgoWallet ? (
+        <Box>
+          <Typography sx={{ mt: 0 }}>
+            Please connect your MyAlgo wallet to continue signing the logic signature
+          </Typography>
+          <Button
+            size="middle"
+            variant="contained"
+            onClick={handleConnectWalletClick}
+          >
+            {"Connect to MyAlgo Wallet"}
+          </Button>
+        </Box>
+      ) : (
+        <Box>
+          <Typography sx={{ mt: 0 }}>
+            Please sign the logic signature transaction to opt in to assets
+          </Typography>
+          <Button
+            size="middle"
+            variant="contained"
+            onClick={signLogicSig}
+          >
+            {"Sign LogicSig"}
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 
@@ -426,13 +447,6 @@ export const JobManager = () => {
           onClick={() => setModalIsOpen(true)}
         >
           Create Job
-        </Button>
-        <Button
-          size="middle"
-          variant="contained"
-          onClick={() => setModalIsOpen(true)}
-        >
-          {signedLogicSigExists === false ? "No Signed Logic Sig" : "Signed Logic Sig"}
         </Button>
       </Box>
       <Box maxWidth="xl" sx={{ mt: 2, ml: 4 }}>
