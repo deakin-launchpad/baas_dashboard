@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {
   Box,
   Button,
@@ -15,6 +16,7 @@ import { EnhancedModal, notify, EnhancedTable } from "components/index";
 import { Formik, Form, Field } from "formik";
 import { format } from "date-fns";
 import MyAlgoConnect from "@randlabs/myalgo-connect";
+import _ from "lodash";
 
 const statuses = ["ALL", "INITIATED", "RUNNING", "FAILED", "SUCCESS"];
 
@@ -34,13 +36,14 @@ export const JobManager = () => {
   const [imageUrl, setImageUrl] = useState(null);
   const [blob, setblob] = useState(null);
   const [accountAddress, setAccountAddress] = useState(null);
+  const [viewModalIsOpen, setViewModalIsOpen] = useState(false);
+  const [viewData, setViewData] = useState([]);
   const myAlgoWallet = new MyAlgoConnect();
   const myAlgoWalletSettings = {
     shouldSelectOneAccount: true,
     openManager: false,
   };
   const isConnectedToMyAlgoWallet = !!accountAddress;
-  // LogicSig in base64 that only approves an asset opt-in
   const logicSigBase64 = "BTEQgQQSMRQxABIQMRKBABIQRIEBQw==";
 
   useEffect(() => {
@@ -94,23 +97,6 @@ export const JobManager = () => {
       notify("Failed to Fetch Job List");
     }
   }, []);
-
-  const viewData = (data) => {
-    if (!data.insightsURL) return;
-    const regex = /\.(gif|jpe?g|tiff?|png|webp|bmp)$/i;
-    const isImage = regex.test(data.insightsURL);
-    if (isImage) {
-      setImageModal(data.insightsURL);
-      setImageModalIsOpen(true);
-    } else if (data.dataURL && data.dataURL !== "") {
-      window.location.href = data.dataURL;
-    } else if (
-      data.insightsURL &&
-      /\.(doc|doc?x|json|pdf|zip)$/i.test(data.insightsURL)
-    ) {
-      window.location.href = data.insightsURL;
-    }
-  };
 
   const getService = useCallback(async () => {
     const response = await API.getService();
@@ -186,6 +172,7 @@ export const JobManager = () => {
           "yyyy-MM-dd HH:mm:ss"
         ),
         insightsURL: item.insightsURL,
+        // data: item.returnData,
       }))
     );
   };
@@ -420,6 +407,31 @@ export const JobManager = () => {
     </Box>
   );
 
+  let viewBoxModal = (
+    <Box>
+      {viewData ? (
+        <Box>
+          <Box
+            sx={{ fontWeight: "bold", display: "flex", alignItems: "center" }}
+          >
+            Job Name: <Typography sx={{ ml: 1 }}>{viewData.jobName}</Typography>
+          </Box>
+
+          <Box
+            sx={{ fontWeight: "bold", display: "flex", alignItems: "center" }}
+          >
+            Status: <Typography sx={{ ml: 1 }}>{viewData.jobStatus}</Typography>
+          </Box>
+
+          <Box sx={{ fontWeight: "bold", display: "flex", alignItems: "top" }}>
+            Return Data:{" "}
+            <Typography sx={{ ml: 1 }}>{viewData.returnData}</Typography>
+          </Box>
+        </Box>
+      ) : null}
+    </Box>
+  );
+
   const imageModelContentToShow = (img) => (
     <Box
       sx={{ display: "flex", flexDirection: "row", justifyContent: "center" }}
@@ -470,6 +482,16 @@ export const JobManager = () => {
         dialogContent={signLogicSigModal}
         options={{
           onClose: () => setSignLogicSigModalIsOpen(false),
+          disableSubmit: true,
+        }}
+      />
+      {/* THIS HERE */}
+      <EnhancedModal
+        isOpen={viewModalIsOpen}
+        dialogTitle={`View Service`}
+        dialogContent={viewBoxModal}
+        options={{
+          onClose: () => setViewModalIsOpen(false),
           disableSubmit: true,
         }}
       />
@@ -544,7 +566,13 @@ export const JobManager = () => {
                   type: "button",
                   function: async (e, data) => {
                     if (!data) return;
-                    viewData(data);
+                    setViewModalIsOpen(true);
+                    let jobName = data["Job Name"];
+                    for (let i = 0; i < job.length; i++) {
+                      if (jobName === job[i].jobName) {
+                        setViewData(job[i]);
+                      }
+                    }
                   },
                 },
                 {
