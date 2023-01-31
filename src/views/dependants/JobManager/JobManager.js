@@ -236,7 +236,7 @@ export const JobManager = () => {
       serviceID: selectedService._id,
       datafileURL: {
         url: values.downloadableURL,
-        json: dataTypeSelected === dataTypes[1] ? values.jsonData : "",
+        json: dataTypeSelected === dataTypes[1] ? JSON.parse(values.jsonData) : "",
       },
     };
     createJob(data);
