@@ -80,10 +80,10 @@ export const Login = () => {
         <Grid item xs={4} className={classes.leftSpan}>
           <Box className={classes.leftTextPosition}>
             <Typography variant="h3" component="h3" color="white">
-              BaaS
+              BLOCCONI
             </Typography>
             <Typography variant="h5" component="h5" color="white">
-              Can fill in the relevant function description
+              The SaaS of Blockchain
             </Typography>
           </Box>
           <Box sx={{ position: "absolute", zIndex: 1, left: 15, bottom: 40 }}>
