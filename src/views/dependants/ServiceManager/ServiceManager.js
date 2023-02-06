@@ -51,7 +51,12 @@ export const ServiceManager = () => {
   }, [getService]);
 
   const createService = async (data) => {
-    let requirements = data.requirements.split(",");
+    const regex = /\b(\w+)\((String|Array\[(String|Number)\]|Number)\)(,*)/g;
+    const matches = data.requirements.matchAll(regex);
+    let requirements = [];
+    for (const match of matches) {
+      requirements.push(match[0].split(",")[0]);
+    }
     data.requirements = requirements;
     const response = await API.createService(data);
     if (response.success) {
@@ -78,7 +83,8 @@ export const ServiceManager = () => {
       endpoint: Yup.string().max(255).required("Endpoint Is Required"),
       name: Yup.string().min(5).max(255).required("Password Is Required"),
       cost: Yup.number().required("Description Is Required"),
-      requirements: Yup.string().max(255).required("Description Is Required"),
+      requirements: Yup.string().max(255).required("Requirements Are Required")
+        .matches(/\b(\w+)\((String|Array\[(String|Number)\]|Number)\)(,*)/g, "Requirements must be specified in the given pattern"),
       requiresAssetOptIn: Yup.boolean().required("Asset Opt In needs to be specified")
     });
   };
@@ -157,7 +163,7 @@ export const ServiceManager = () => {
               margin="normal"
               name="requirements"
               type="text"
-              placeholder="eg: requirement1,requirement2 "
+              placeholder="eg: req1(String), req2(Number), req3(Array[String])"
               variant="outlined"
               error={touched.requirements && Boolean(errors.requirements)}
               helperText={touched.requirements && errors.requirements}
