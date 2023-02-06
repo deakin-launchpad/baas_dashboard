@@ -38,6 +38,7 @@ export const JobManager = () => {
   const [accountAddress, setAccountAddress] = useState(null);
   const [viewModalIsOpen, setViewModalIsOpen] = useState(false);
   const [viewData, setViewData] = useState([]);
+  const [json, setJson] = useState("{}");
   const myAlgoWallet = new MyAlgoConnect();
   const myAlgoWalletSettings = {
     shouldSelectOneAccount: true,
@@ -119,6 +120,28 @@ export const JobManager = () => {
       return;
     } else {
       setSelectedService(event.target.value);
+
+      // modify json data
+      let tempJson = {};
+      const regex = /\b(\w+)\((String|Array\[(String|Number)\]|Number)\)/g;
+      event.target.value.requirements.forEach((requirement) => {
+        for (let match of requirement.matchAll(regex)) {
+          if (match[2].startsWith("Array")) {
+            if (match[3] === "Number") {
+              tempJson[match[1]] = [1, 2];
+            } else if (match[3] === "String") {
+              tempJson[match[1]] = ["", ""];
+            }
+          } else {
+            if (match[2] === "Number") {
+              tempJson[match[1]] = 1;
+            } else if (match[2] === "String") {
+              tempJson[match[1]] = "";
+            }
+          }
+        }
+      });
+      setJson(JSON.stringify(tempJson, null, "\t"));
     }
   };
 
@@ -155,6 +178,10 @@ export const JobManager = () => {
 
   const handleDataTypeChange = (event) => {
     setSelectedDataType(event.target.value);
+  };
+
+  const handleJsonChange = (event) => {
+    setJson(event.target.value);
   };
 
   useEffect(() => {
@@ -208,7 +235,6 @@ export const JobManager = () => {
 
   const initialValues = {
     downloadableURL: "",
-    jsonData: `{"companyName": "Trial Company", "directorsWallets": { "directorA": "Hello", "directorB": "wall", "directorC": "Bye"}}`,
     jobName: "",
     service: "",
     dataType: "",
@@ -216,17 +242,14 @@ export const JobManager = () => {
   };
 
   const handleSubmit = async (values, { resetForm }) => {
+    let tempJson;
     if (dataTypeSelected === dataTypes[1]) {
-      let json;
+      tempJson = JSON.parse(json);
       if (blob !== null) {
-        json = JSON.parse(values.jsonData);
-        json.blob = blob;
-        values.jsonData = JSON.stringify(json);
+        tempJson.blob = blob;
       }
       if (selectedService.requires_asset_opt_in) {
-        json = JSON.parse(values.jsonData);
-        json.signedLogicSig = signedLogicSig;
-        values.jsonData = JSON.stringify(json);
+        tempJson.signedLogicSig = signedLogicSig;
       }
     }
 
@@ -236,7 +259,7 @@ export const JobManager = () => {
       serviceID: selectedService._id,
       datafileURL: {
         url: values.downloadableURL,
-        json: dataTypeSelected === dataTypes[1] ? JSON.parse(values.jsonData) : "",
+        json: dataTypeSelected === dataTypes[1] ? tempJson : "",
       },
     };
     createJob(data);
@@ -307,6 +330,8 @@ export const JobManager = () => {
                   label="Json Data"
                   margin="normal"
                   name="jsonData"
+                  value={json}
+                  onChange={handleJsonChange}
                   type="text"
                   variant="outlined"
                   multiline
