@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {
   Box,
   Button,
@@ -14,7 +15,8 @@ import { API } from "helpers";
 import { EnhancedModal, notify, EnhancedTable } from "components/index";
 import { Formik, Form, Field } from "formik";
 import { format } from "date-fns";
-import MyAlgoConnect from '@randlabs/myalgo-connect';
+import MyAlgoConnect from "@randlabs/myalgo-connect";
+import _ from "lodash";
 
 const statuses = ["ALL", "INITIATED", "RUNNING", "FAILED", "SUCCESS"];
 
@@ -34,13 +36,15 @@ export const JobManager = () => {
   const [imageUrl, setImageUrl] = useState(null);
   const [blob, setblob] = useState(null);
   const [accountAddress, setAccountAddress] = useState(null);
+  const [viewModalIsOpen, setViewModalIsOpen] = useState(false);
+  const [viewData, setViewData] = useState([]);
+  const [json, setJson] = useState("{}");
   const myAlgoWallet = new MyAlgoConnect();
   const myAlgoWalletSettings = {
     shouldSelectOneAccount: true,
-    openManager: false
+    openManager: false,
   };
   const isConnectedToMyAlgoWallet = !!accountAddress;
-  // LogicSig in base64 that only approves an asset opt-in 
   const logicSigBase64 = "BTEQgQQSMRQxABIQMRKBABIQRIEBQw==";
 
   useEffect(() => {
@@ -52,13 +56,6 @@ export const JobManager = () => {
     }
     if (selectedImage) {
       post();
-
-      // const file = selectedImage;
-      // const reader = new window.FileReader();
-      // reader.readAsArrayBuffer(file);
-      // reader.onloadend = () => {
-      //   setBuffer({ buffer: Buffer(reader.result) });
-      // };
     }
   }, [selectedImage]);
 
@@ -102,27 +99,6 @@ export const JobManager = () => {
     }
   }, []);
 
-  const viewData = (data) => {
-    if (!data.insightsURL) return;
-    const regex = /\.(gif|jpe?g|tiff?|png|webp|bmp)$/i;
-    const isImage = regex.test(data.insightsURL);
-    if (isImage) {
-      setImageModal(data.insightsURL);
-      setImageModalIsOpen(true);
-    } else if (data.dataURL && data.dataURL !== "") {
-      window.location.href = data.dataURL;
-    } else if (
-      data.insightsURL &&
-      /\.(doc|doc?x|json|pdf|zip)$/i.test(data.insightsURL)
-    ) {
-      window.location.href = data.insightsURL;
-    }
-  };
-
-  useEffect(() => {
-    getJob();
-  }, [getJob]);
-
   const getService = useCallback(async () => {
     const response = await API.getService();
     if (response.success) {
@@ -134,13 +110,38 @@ export const JobManager = () => {
   }, []);
 
   const handleServiceChange = (event) => {
-    if (event.target.value.requires_asset_opt_in && signedLogicSig.length === 0) {
+    if (
+      event.target.value.requires_asset_opt_in &&
+      signedLogicSig.length === 0
+    ) {
       setModalIsOpen(false);
       setSignLogicSigModalIsOpen(true);
       notify("Please sign logic sig to opt in to assets");
       return;
     } else {
       setSelectedService(event.target.value);
+
+      // modify json data
+      let tempJson = {};
+      const regex = /\b(\w+)\((String|Array\[(String|Number)\]|Number)\)/g;
+      event.target.value.requirements.forEach((requirement) => {
+        for (let match of requirement.matchAll(regex)) {
+          if (match[2].startsWith("Array")) {
+            if (match[3] === "Number") {
+              tempJson[match[1]] = [1, 2];
+            } else if (match[3] === "String") {
+              tempJson[match[1]] = ["", ""];
+            }
+          } else {
+            if (match[2] === "Number") {
+              tempJson[match[1]] = 1;
+            } else if (match[2] === "String") {
+              tempJson[match[1]] = "";
+            }
+          }
+        }
+      });
+      setJson(JSON.stringify(tempJson, null, "\t"));
     }
   };
 
@@ -159,7 +160,7 @@ export const JobManager = () => {
     myAlgoWallet
       .signLogicSig(logicSigBase64, accountAddress.address)
       .then(async (signedLogicSigFromWallet) => {
-        let data = {signedLogicSig: Array.from(signedLogicSigFromWallet)};
+        let data = { signedLogicSig: Array.from(signedLogicSigFromWallet) };
         const response = await API.setSignedLogicSig(data);
         if (response.success) {
           setSignedLogicSig(response.data.data.signedLogicSig);
@@ -179,6 +180,10 @@ export const JobManager = () => {
     setSelectedDataType(event.target.value);
   };
 
+  const handleJsonChange = (event) => {
+    setJson(event.target.value);
+  };
+
   useEffect(() => {
     getService();
   }, [getService]);
@@ -194,6 +199,7 @@ export const JobManager = () => {
           "yyyy-MM-dd HH:mm:ss"
         ),
         insightsURL: item.insightsURL,
+        // data: item.returnData,
       }))
     );
   };
@@ -201,6 +207,17 @@ export const JobManager = () => {
   useEffect(() => {
     resetTableData(job);
   }, [job]);
+
+  useEffect(() => {
+    getJob();
+  }, [getJob]);
+
+  const updateTable = useCallback(() => {
+    setTimeout(() => {
+      getJob();
+      resetTableData(job);
+    }, 500);
+  }, [getJob, job]);
 
   const getSignedLogicSig = useCallback(async () => {
     const response = await API.getSignedLogicSig();
@@ -218,27 +235,23 @@ export const JobManager = () => {
 
   const initialValues = {
     downloadableURL: "",
-    jsonData: `{"numberToSet":  }`,
     jobName: "",
     service: "",
     dataType: "",
-    blob: null
+    blob: null,
   };
 
   const handleSubmit = async (values, { resetForm }) => {
+    let tempJson;
     if (dataTypeSelected === dataTypes[1]) {
-      let json;
+      tempJson = JSON.parse(json);
       if (blob !== null) {
-        json = JSON.parse(values.jsonData);
-        json.blob = blob;
-        values.jsonData = JSON.stringify(json);
+        tempJson.blob = blob;
       }
       if (selectedService.requires_asset_opt_in) {
-        json = JSON.parse(values.jsonData);
-        json.signedLogicSig = signedLogicSig;
-        values.jsonData = JSON.stringify(json);
+        tempJson.signedLogicSig = signedLogicSig;
       }
-    } 
+    }
 
     const data = {
       jobName: values.jobName,
@@ -246,10 +259,9 @@ export const JobManager = () => {
       serviceID: selectedService._id,
       datafileURL: {
         url: values.downloadableURL,
-        json: dataTypeSelected === dataTypes[1] ? values.jsonData : "",
+        json: dataTypeSelected === dataTypes[1] ? tempJson : "",
       },
     };
-    console.log(data);
     createJob(data);
     resetForm();
   };
@@ -318,6 +330,8 @@ export const JobManager = () => {
                   label="Json Data"
                   margin="normal"
                   name="jsonData"
+                  value={json}
+                  onChange={handleJsonChange}
                   type="text"
                   variant="outlined"
                   multiline
@@ -375,6 +389,10 @@ export const JobManager = () => {
                 size="large"
                 variant="contained"
                 type="submit"
+                onClick={() => {
+                  setModalIsOpen(false);
+                  updateTable();
+                }}
               >
                 Submit
               </Button>
@@ -390,7 +408,8 @@ export const JobManager = () => {
       {!isConnectedToMyAlgoWallet ? (
         <Box>
           <Typography sx={{ mt: 0 }}>
-            Please connect your MyAlgo wallet to continue signing the logic signature
+            Please connect your MyAlgo wallet to continue signing the logic
+            signature
           </Typography>
           <Button
             size="middle"
@@ -405,15 +424,36 @@ export const JobManager = () => {
           <Typography sx={{ mt: 0 }}>
             Please sign the logic signature transaction to opt in to assets
           </Typography>
-          <Button
-            size="middle"
-            variant="contained"
-            onClick={signLogicSig}
-          >
+          <Button size="middle" variant="contained" onClick={signLogicSig}>
             {"Sign LogicSig"}
           </Button>
         </Box>
       )}
+    </Box>
+  );
+
+  let viewBoxModal = (
+    <Box>
+      {viewData ? (
+        <Box>
+          <Box
+            sx={{ fontWeight: "bold", display: "flex", alignItems: "center" }}
+          >
+            Job Name: <Typography sx={{ ml: 1 }}>{viewData.jobName}</Typography>
+          </Box>
+
+          <Box
+            sx={{ fontWeight: "bold", display: "flex", alignItems: "center" }}
+          >
+            Status: <Typography sx={{ ml: 1 }}>{viewData.jobStatus}</Typography>
+          </Box>
+
+          <Box sx={{ fontWeight: "bold", display: "flex", alignItems: "top" }}>
+            Return Data:{" "}
+            <Typography sx={{ ml: 1 }}>{viewData.returnData}</Typography>
+          </Box>
+        </Box>
+      ) : null}
     </Box>
   );
 
@@ -470,6 +510,16 @@ export const JobManager = () => {
           disableSubmit: true,
         }}
       />
+      {/* THIS HERE */}
+      <EnhancedModal
+        isOpen={viewModalIsOpen}
+        dialogTitle={`View Service`}
+        dialogContent={viewBoxModal}
+        options={{
+          onClose: () => setViewModalIsOpen(false),
+          disableSubmit: true,
+        }}
+      />
       <Box
         maxWidth="xl"
         sx={{
@@ -507,6 +557,13 @@ export const JobManager = () => {
           Create Job
         </Button>
       </Box>
+      <Button
+        variant="contained"
+        sx={{ mt: 4, ml: 4 }}
+        onClick={() => updateTable()}
+      >
+        Refresh
+      </Button>
       <Box maxWidth="xl" sx={{ mt: 2, ml: 4 }}>
         {dataForTable.length > 0 ? (
           <EnhancedTable
@@ -534,7 +591,13 @@ export const JobManager = () => {
                   type: "button",
                   function: async (e, data) => {
                     if (!data) return;
-                    viewData(data);
+                    setViewModalIsOpen(true);
+                    let jobName = data["Job Name"];
+                    for (let i = 0; i < job.length; i++) {
+                      if (jobName === job[i].jobName) {
+                        setViewData(job[i]);
+                      }
+                    }
                   },
                 },
                 {

@@ -42,7 +42,7 @@ const useStyles = makeStyles(() =>
 
 export const Login = () => {
   const classes = useStyles();
-  const [pageHeading] = useState("Sign in to BaaS");
+  const [pageHeading] = useState("Sign in to Blocconi");
   const { setAccessToken } = useContext(LoginContext);
   const { deviceUUID, deviceName } = useContext(DeviceInfoContext);
   const { setCurrentUserRole } = useContext(LayoutContext);
