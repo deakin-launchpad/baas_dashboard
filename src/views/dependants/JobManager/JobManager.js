@@ -123,25 +123,14 @@ export const JobManager = () => {
 
       // modify json data
       let tempJson = {};
-      const regex = /\b(\w+)\((String|Array\[(String|Number)\]|Number)\)/g;
-      event.target.value.requirements.forEach((requirement) => {
-        for (let match of requirement.matchAll(regex)) {
-          if (match[2].startsWith("Array")) {
-            if (match[3] === "Number") {
-              tempJson[match[1]] = [1, 2];
-            } else if (match[3] === "String") {
-              tempJson[match[1]] = ["", ""];
-            }
-          } else {
-            if (match[2] === "Number") {
-              tempJson[match[1]] = 1;
-            } else if (match[2] === "String") {
-              tempJson[match[1]] = "";
-            }
-          }
-        }
-      });
-      setJson(JSON.stringify(tempJson, null, "\t"));
+      try {
+        tempJson = JSON.parse(event.target.value.requirements);
+      }
+      catch (error) {
+        notify("Invalid Requirements");
+        return;
+      }
+      setJson(JSON.stringify(tempJson, undefined, 2));
     }
   };
 
