@@ -69,7 +69,7 @@ ActionButtonSwitch.propTypes = {
 };
 const ActionButton = (props) => {
   return (
-    <Button sx={{minWidth:120}} variant={"outlined"} onClick={(e) => props.function(e)}>
+    <Button sx={{ minWidth: 120 }} variant={"outlined"} onClick={(e) => props.function(e)}>
       {props.label !== undefined ? props.label : "Click Me!"}
     </Button>
   );
@@ -245,20 +245,20 @@ const TableHeader = (props) => {
         >
           {props.options.toolbarActions !== undefined
             ? props.options.toolbarActions.map((value, i) => {
-                if (value === undefined || value === false) return null;
-                return (
-                  <Grid item key={"toolbarAction" + i}>
-                    <Button
-                      color="primary"
-                      size="small"
-                      onClick={(e) => value.function(e, props.selecteditems)}
-                      variant="contained"
-                    >
-                      {value.label}
-                    </Button>
-                  </Grid>
-                );
-              })
+              if (value === undefined || value === false) return null;
+              return (
+                <Grid item key={"toolbarAction" + i}>
+                  <Button
+                    color="primary"
+                    size="small"
+                    onClick={(e) => value.function(e, props.selecteditems)}
+                    variant="contained"
+                  >
+                    {value.label}
+                  </Button>
+                </Grid>
+              );
+            })
             : null}
         </Grid>
       )}
@@ -390,15 +390,15 @@ const TableErrorAndEmptyRows = (props) => {
               ? props.options.selector
                 ? props.options.actions !== undefined
                   ? props.keys.length +
-                    1 +
-                    props.options.actions.filter((value) => value !== false)
-                      .length
-                  : props.keys.length + 1
-                : props.options.actions !== undefined
-                ? props.keys.length +
+                  1 +
                   props.options.actions.filter((value) => value !== false)
                     .length
-                : props.keys.length
+                  : props.keys.length + 1
+                : props.options.actions !== undefined
+                  ? props.keys.length +
+                  props.options.actions.filter((value) => value !== false)
+                    .length
+                  : props.keys.length
               : props.keys.length
           }
         />
@@ -446,10 +446,10 @@ const RenderRow = (props) => {
           {Array.isArray(props.data[key])
             ? breakObject(props.data[key])
             : key === "cost" && !String(props.data[key]).includes("$")
-            ? `$${String(props.data[key])}`
-            : key === "_id"
-            ? String(props.data[key]).substring(16)
-            : String(props.data[key])}
+              ? `$${String(props.data[key])}`
+              : key === "_id"
+                ? String(props.data[key]).substring(16)
+                : String(props.data[key])}
         </Typography>
       </TableCell>
     );
@@ -677,7 +677,7 @@ const TablePaginationComponent = (props) => {
                 ? props.data.length
                 : 0) / props.rowsPerPage
             ) -
-              1
+            1
           }
           aria-label="next page"
         >
@@ -696,7 +696,7 @@ const TablePaginationComponent = (props) => {
                 ? props.data.length
                 : 0) / props.rowsPerPage
             ) -
-              1
+            1
           }
           aria-label="last page"
         >
@@ -723,7 +723,7 @@ const TablePaginationComponent = (props) => {
       rowsPerPage={props.rowsPerPage}
       page={props.page}
       onRowsPerPageChange={handleChangeRowsPerPage}
-      onPageChange={() => {}}
+      onPageChange={() => { }}
       count={
         props.data !== undefined && props.data !== null ? props.data.length : 0
       }
@@ -841,7 +841,7 @@ export const EnhancedTable = (props) => {
       overflowX: "auto",
     },
     tableWrapper: {
-      maxHeight: props?.options?.ui?.maxHeight || 407,
+      maxHeight: props?.options?.ui?.maxHeight || 500,
       overflowY: "auto",
       "-webkit-overflow-scrolling": "touch",
     },
@@ -915,7 +915,7 @@ export const EnhancedTable = (props) => {
         (props.data !== undefined && props.data !== null
           ? props.data.length
           : 0) -
-          page * rowsPerPage
+        page * rowsPerPage
       )
     );
   }, [rowsPerPage, props.data, page]);

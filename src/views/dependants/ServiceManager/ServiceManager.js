@@ -216,37 +216,38 @@ export const ServiceManager = () => {
               }}
               gutterBottom
             >
-              {selectedService.name}
+              {selectedService.Name}
             </Typography>
             <Typography variant="body2">
-              Creator ID: {selectedService.creator_id ?? "null"}
+              <b>Creator ID: </b> {selectedService["Creator ID"] ?? "null"}
               <br />
             </Typography>
             <Typography variant="body2">
-              Service ID: {selectedService.id}
+              Service ID: {selectedService.ID}
               <br />
             </Typography>
             <Typography variant="body2">
-              Service Link: {selectedService.url}
+              Service Link: {selectedService.URL}
               <br />
             </Typography>
             <Typography variant="body2">
-              Endpoint name: {selectedService.endpoint}
+              Endpoint name: {selectedService.Endpoint}
+              <br />
+            </Typography>
+            <br />
+            <Typography variant="body2">
+              Price: ${selectedService.Cost}
               <br />
             </Typography>
             <Typography variant="body2">
-              {selectedService.requirements?.map((req, i) => (
-                <li key={"requirement-" + i}>{req}</li>
-              ))}
+              Asset Opt In Required: {selectedService["Requires Asset Opt In"]?.toString()}
               <br />
             </Typography>
+            <br />
             <Typography variant="body2">
-              Price: ${selectedService.cost}
+              Requirements:
               <br />
-            </Typography>
-            <Typography variant="body2">
-              Price: ${selectedService.requires_asset_opt_in}
-              <br />
+              {selectedService["Requirements"]?.toString()}
             </Typography>
           </CardContent>
         </Card>
@@ -274,7 +275,7 @@ export const ServiceManager = () => {
           disableSubmit: true,
         }}
       />
-      <Box maxWidth="xl" sx={{ textAlign: "right", ml: 4 }}>
+      {/* <Box maxWidth="xl" sx={{ textAlign: "right", ml: 4 }}>
         <Button
           size="middle"
           variant="contained"
@@ -282,7 +283,7 @@ export const ServiceManager = () => {
         >
           Create Service
         </Button>
-      </Box>
+      </Box> */}
     </Box>
   );
 
@@ -293,8 +294,15 @@ export const ServiceManager = () => {
           data={service}
           title="Service Manager"
           options={{
-            selector: true,
             ignoreKeys: ["__v"],
+            toolbarActions: [
+              {
+                label: "Create Service",
+                function: () => {
+                  setserviceModal(true);
+                },
+              }
+            ],
             actions: [
               {
                 name: "",

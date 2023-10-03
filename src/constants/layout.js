@@ -49,14 +49,14 @@ class Layout {
           customTitle: "Developers",
           isFavourite: true,
         }),
-        new MenuItem({
-          name: "Data Manager",
-          type: "button",
-          icon: "entypo:code",
-          helpingAttribute: "/Datasets",
-          customTitle: "Data Manager",
-          isFavourite: true,
-        }),
+        // new MenuItem({
+        //   name: "Data Manager",
+        //   type: "button",
+        //   icon: "entypo:code",
+        //   helpingAttribute: "/Datasets",
+        //   customTitle: "Data Manager",
+        //   isFavourite: true,
+        // }),
         new MenuItem({
           name: "Service Manager",
           type: "button",

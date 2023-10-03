@@ -231,18 +231,18 @@ class API {
       })
       .catch((error) => errorHelper(error));
   }
-  getDatasets() {
-    return axiosInstance
-      .get("data/getDataEntries", {
-        headers: {
-          authorization: "Bearer " + AccessToken,
-        },
-      })
-      .then((response) => {
-        return generateSuccess(response.data.data);
-      })
-      .catch((error) => errorHelper(error));
-  }
+  // getDatasets() {
+  //   return axiosInstance
+  //     .get("data/getDataEntries", {
+  //       headers: {
+  //         authorization: "Bearer " + AccessToken,
+  //       },
+  //     })
+  //     .then((response) => {
+  //       return generateSuccess(response.data.data);
+  //     })
+  //     .catch((error) => errorHelper(error));
+  // }
   /**
    *
    * @param {FormData} data document file as form-data
@@ -279,16 +279,16 @@ class API {
       .catch((error) => errorHelper(error));
   }
 
-  createDataEntry(data) {
-    return axiosInstance
-      .post("data/createDataEntry", data, {
-        headers: {
-          authorization: "Bearer " + AccessToken,
-        },
-      })
-      .then(() => generateSuccess(AccessToken))
-      .catch((error) => errorHelper(error));
-  }
+  // createDataEntry(data) {
+  //   return axiosInstance
+  //     .post("data/createDataEntry", data, {
+  //       headers: {
+  //         authorization: "Bearer " + AccessToken,
+  //       },
+  //     })
+  //     .then(() => generateSuccess(AccessToken))
+  //     .catch((error) => errorHelper(error));
+  // }
 }
 const instance = new API();
 export default instance;
