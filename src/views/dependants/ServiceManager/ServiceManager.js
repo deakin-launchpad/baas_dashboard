@@ -30,7 +30,7 @@ export const ServiceManager = () => {
         let data = {
           Name: item.name,
           ID: item._id,
-          Requirements: item.requirements,
+          Requirements: JSON.parse(item.requirements),
           URL: item.url,
           Endpoint: item.endpoint,
           Cost: item.cost,
@@ -248,7 +248,7 @@ export const ServiceManager = () => {
               <b>  Requirements:</b>
               <br />
               <TextField
-                defaultValue={JSON.stringify(JSON.parse(selectedService["Requirements"]), undefined, 2)}
+                defaultValue={JSON.stringify(selectedService?.Requirements, undefined, 2)}
                 multiline={true}
                 rows={10}
                 disabled={true}
@@ -321,8 +321,8 @@ export const ServiceManager = () => {
                 label: "View Details",
                 type: "button",
                 function: async (e, data) => {
-                  setModalIsOpen(true);
                   setSelectedService(data);
+                  setModalIsOpen(true);
                 },
               },
             ],
