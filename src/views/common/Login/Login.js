@@ -15,9 +15,7 @@ const useStyles = makeStyles(() =>
     leftSpan: {
       height: "100vh",
       position: "relative",
-      background: `#326EBD url(${
-        require("../../../assets/images/bg/authentication_left_bg.png").default
-      })`,
+      background: `#326EBD url(${require("../../../assets/images/bg/authentication_left_bg.png").default})`,
       backgroundSize: "100% 100%",
     },
     leftTextPosition: {
@@ -31,9 +29,7 @@ const useStyles = makeStyles(() =>
     },
     rightSpan: {
       height: "100vh",
-      background: `url(${
-        require("../../../assets/images/bg/authentication_bg.png").default
-      })`,
+      background: `url(${require("../../../assets/images/bg/authentication_bg.png").default})`,
       backgroundSize: "100% 100%",
       padding: 40,
     },
@@ -42,7 +38,7 @@ const useStyles = makeStyles(() =>
 
 export const Login = () => {
   const classes = useStyles();
-  const [pageHeading] = useState("Sign in to Blocconi");
+  const [pageHeading] = useState("Sign in to SChare");
   const { setAccessToken } = useContext(LoginContext);
   const { deviceUUID, deviceName } = useContext(DeviceInfoContext);
   const { setCurrentUserRole } = useContext(LayoutContext);
@@ -80,7 +76,7 @@ export const Login = () => {
         <Grid item xs={4} className={classes.leftSpan}>
           <Box className={classes.leftTextPosition}>
             <Typography variant="h3" component="h3" color="white">
-              BLOCCONI
+              SChare
             </Typography>
             <Typography variant="h5" component="h5" color="white">
               The SaaS of Blockchain

@@ -231,18 +231,20 @@ class API {
       })
       .catch((error) => errorHelper(error));
   }
-  // getDatasets() {
-  //   return axiosInstance
-  //     .get("data/getDataEntries", {
-  //       headers: {
-  //         authorization: "Bearer " + AccessToken,
-  //       },
-  //     })
-  //     .then((response) => {
-  //       return generateSuccess(response.data.data);
-  //     })
-  //     .catch((error) => errorHelper(error));
-  // }
+
+  getJobById(jobId) {
+    return axiosInstance
+      .get(`job/getJob/${jobId}`, {
+        headers: {
+          authorization: "Bearer " + AccessToken,
+        },
+      })
+      .then((response) => {
+        return generateSuccess(response.data.data);
+      })
+      .catch((error) => errorHelper(error));
+  }
+
   /**
    *
    * @param {FormData} data document file as form-data

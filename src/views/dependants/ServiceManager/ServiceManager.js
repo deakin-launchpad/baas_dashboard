@@ -223,15 +223,15 @@ export const ServiceManager = () => {
               <br />
             </Typography>
             <Typography variant="body2">
-              Service ID: {selectedService.ID}
+              <b>Service ID:</b> {selectedService.ID}
               <br />
             </Typography>
             <Typography variant="body2">
-              Service Link: {selectedService.URL}
+              <b>  Service Link: </b>{selectedService.URL}
               <br />
             </Typography>
             <Typography variant="body2">
-              Endpoint name: {selectedService.Endpoint}
+              <b>  Endpoint route:</b> {selectedService.Endpoint}
               <br />
             </Typography>
             <br />
@@ -245,9 +245,18 @@ export const ServiceManager = () => {
             </Typography>
             <br />
             <Typography variant="body2">
-              Requirements:
+              <b>  Requirements:</b>
               <br />
-              {selectedService["Requirements"]?.toString()}
+              <TextField
+                defaultValue={JSON.stringify(JSON.parse(selectedService["Requirements"]), undefined, 2)}
+                multiline={true}
+                rows={10}
+                disabled={true}
+                sx={{
+                  width: "100%",
+                }}
+              />
+
             </Typography>
           </CardContent>
         </Card>
@@ -294,7 +303,10 @@ export const ServiceManager = () => {
           data={service}
           title="Service Manager"
           options={{
-            ignoreKeys: ["__v"],
+            ui: {
+              maxHeight: "100%"
+            },
+            ignoreKeys: ["__v", "Requirements", "URL", "Endpoint", "Creator ID"],
             toolbarActions: [
               {
                 label: "Create Service",
@@ -306,7 +318,7 @@ export const ServiceManager = () => {
             actions: [
               {
                 name: "",
-                label: "View",
+                label: "View Details",
                 type: "button",
                 function: async (e, data) => {
                   setModalIsOpen(true);

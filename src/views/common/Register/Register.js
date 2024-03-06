@@ -23,9 +23,7 @@ const useStyles = makeStyles(() =>
     leftSpan: {
       minHeight: "100vh",
       position: "relative",
-      background: `#292E37 url(${
-        require("../../../assets/images/bg/authentication_left_bg.png").default
-      })`,
+      background: `#292E37 url(${require("../../../assets/images/bg/authentication_left_bg.png").default})`,
       backgroundSize: "100% 100%",
     },
     leftTextPosition: {
@@ -39,9 +37,7 @@ const useStyles = makeStyles(() =>
     },
     rightSpan: {
       minHeight: "100vh",
-      background: `url(${
-        require("../../../assets/images/bg/authentication_bg.png").default
-      })`,
+      background: `url(${require("../../../assets/images/bg/authentication_bg.png").default})`,
       backgroundSize: "100% 100%",
       padding: 40,
     },
@@ -51,7 +47,7 @@ const useStyles = makeStyles(() =>
 export const Register = () => {
   const classes = useStyles();
   const { deviceData } = useContext(DeviceInfoContext);
-  const [pageHeading] = useState("Sign up to Blocconi");
+  const [pageHeading] = useState("Sign up to SChare");
   const [emailId, setEmailId] = useState("");
   const [countryCode, setCountryCode] = useState("+61");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -212,7 +208,7 @@ export const Register = () => {
         <Grid item xs={4} className={classes.leftSpan}>
           <Box className={classes.leftTextPosition}>
             <Typography variant="h3" component="h3" color="white">
-              Blocconi
+              SChare
             </Typography>
             <Typography variant="h5" component="h5" color="white">
               Can fill in the relevant function description

@@ -37,7 +37,7 @@ export const JobManager = () => {
   const [blob, setblob] = useState(null);
   const [accountAddress, setAccountAddress] = useState(null);
   const [viewModalIsOpen, setViewModalIsOpen] = useState(false);
-  const [viewData, setViewData] = useState([]);
+  const [viewData, setViewData] = useState({});
   const [json, setJson] = useState("{}");
   const myAlgoWallet = new MyAlgoConnect();
   const myAlgoWalletSettings = {
@@ -180,7 +180,8 @@ export const JobManager = () => {
   const resetTableData = (data) => {
     setDataForTable(
       data.map((item) => ({
-        Status: item.jobStatus,
+        _id: item._id,
+        "Status": item.jobStatus,
         "Job Name": item.jobName,
         "Execution Time": item.executionTime,
         "Operation Time": format(
@@ -188,7 +189,7 @@ export const JobManager = () => {
           "yyyy-MM-dd HH:mm:ss"
         ),
         insightsURL: item.insightsURL,
-        // data: item.returnData,
+        returnedData: item.returnData,
       }))
     );
   };
@@ -422,24 +423,33 @@ export const JobManager = () => {
   );
 
   let viewBoxModal = (
-    <Box>
+    <Box sx={{ height: 500 }}>
       {viewData ? (
         <Box>
           <Box
             sx={{ fontWeight: "bold", display: "flex", alignItems: "center" }}
           >
-            Job Name: <Typography sx={{ ml: 1 }}>{viewData.jobName}</Typography>
+            Job Name: <Typography sx={{ ml: 1 }}>{viewData?.jobName}</Typography>
           </Box>
 
           <Box
             sx={{ fontWeight: "bold", display: "flex", alignItems: "center" }}
           >
-            Status: <Typography sx={{ ml: 1 }}>{viewData.jobStatus}</Typography>
+            Status: <Typography sx={{ ml: 1 }}>{viewData?.jobStatus}</Typography>
           </Box>
 
-          <Box sx={{ fontWeight: "bold", display: "flex", alignItems: "top" }}>
+          <Box sx={{ fontWeight: "bold", alignItems: "top" }}>
             Return Data:{" "}
-            <Typography sx={{ ml: 1 }}>{viewData.returnData}</Typography>
+            <TextField
+              multiline
+              maxRows={10}
+              disabled={true}
+              defaultValue={JSON.stringify(viewData?.returnData, undefined, 2)}
+              sx={{
+                width: "100%",
+                height: "100%"
+              }}
+            />
           </Box>
         </Box>
       ) : null}
@@ -507,6 +517,7 @@ export const JobManager = () => {
         options={{
           onClose: () => setViewModalIsOpen(false),
           disableSubmit: true,
+
         }}
       />
       <Box
@@ -521,6 +532,13 @@ export const JobManager = () => {
           gap: 2,
         }}
       >
+        <Button
+          variant="contained"
+          size="middle"
+          onClick={() => updateTable()}
+        >
+          Refresh
+        </Button>
         <FormControl sx={{ width: "8.5em" }}>
           <InputLabel>Filter Status:</InputLabel>
           <Select
@@ -546,13 +564,7 @@ export const JobManager = () => {
           Create Job
         </Button>
       </Box>
-      <Button
-        variant="contained"
-        sx={{ mt: 4, ml: 4 }}
-        onClick={() => updateTable()}
-      >
-        Refresh
-      </Button>
+
       <Box maxWidth="xl" sx={{ mt: 2, ml: 4 }}>
         {dataForTable.length > 0 ? (
           <EnhancedTable
@@ -563,7 +575,11 @@ export const JobManager = () => {
               enableSort: true,
               sortAscending: false,
               selectSortBy: "Operation Time",
+              ui: {
+                maxHeight: "100%"
+              },
               ignoreKeys: [
+                "_id",
                 "deakinSSO",
                 "firstLogin",
                 "emailVerified",
@@ -572,26 +588,29 @@ export const JobManager = () => {
                 "createdAt",
                 "insightsURL",
                 "serviceID",
+                "returnedData"
               ],
               actions: [
                 {
                   name: "",
-                  label: "View",
+                  label: "View Results",
                   type: "button",
                   function: async (e, data) => {
+                    console.log(data);
                     if (!data) return;
+                    const viewData = {};
+                    viewData.jobName = data["Job Name"];
+                    viewData.jobStatus = data["Status"];
+                    viewData.returnData = data["returnedData"];
+                    console.log(viewData);
+
+                    setViewData(viewData);
                     setViewModalIsOpen(true);
-                    let jobName = data["Job Name"];
-                    for (let i = 0; i < job.length; i++) {
-                      if (jobName === job[i].jobName) {
-                        setViewData(job[i]);
-                      }
-                    }
                   },
                 },
                 {
                   name: "",
-                  label: "remove",
+                  label: "Remove",
                   type: "button",
                   function: async (e, data) => {
                     if (!data) return;
