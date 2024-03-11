@@ -7,30 +7,35 @@ import {
   TextField,
   FormControl,
   Paper,
+  FormControlLabel, Switch
 } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
 import { API } from "helpers";
-import { EnhancedModal, notify, EnhancedTable } from "components/index";
-import { Formik, Form, Field } from "formik";
+import { EnhancedModal, notify, EnhancedTable, EnhancedEditor } from "components/index";
+import { Formik, Field, Form } from "formik";
 import * as Yup from "yup";
-import { FormControlLabel, Switch } from "../../../../node_modules/@mui/material/index";
+const HtmlToReactParser = require('html-to-react').Parser;
+const htmlToReactParser = new HtmlToReactParser();
 
 export const ServiceManager = () => {
   const [service, setService] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedService, setSelectedService] = useState("");
   const [serviceModal, setserviceModal] = useState(false);
+  const [description, setDescription] = useState("");
 
   const getService = useCallback(async () => {
     const response = await API.getService();
     if (response.success) {
       const res = response.data.data;
+      console.log(res);
       let result = [];
       res.map((item) => {
         let data = {
           Name: item.name,
           ID: item._id,
           Requirements: JSON.parse(item.requirements),
+          Description: item.description,
           URL: item.url,
           Endpoint: item.endpoint,
           Cost: item.cost,
@@ -76,7 +81,7 @@ export const ServiceManager = () => {
     name: "",
     cost: "",
     requirements: "",
-    "requiresAssetOptIn": false
+    requiresAssetOptIn: false
   };
 
   const validationSchema = () => {
@@ -98,6 +103,7 @@ export const ServiceManager = () => {
       serviceId: values.serviceId,
       cost: values.cost,
       requirements: values.requirements,
+      description: description,
       requiresAssetOptIn: values.requiresAssetOptIn
     };
     createService(data);
@@ -138,7 +144,7 @@ export const ServiceManager = () => {
             <Field
               as={TextField}
               fullWidth
-              label=" Endpoint"
+              label="Endpoint"
               margin="normal"
               name="endpoint"
               type="text"
@@ -170,6 +176,14 @@ export const ServiceManager = () => {
               variant="outlined"
               error={touched.requirements && Boolean(errors.requirements)}
               helperText={touched.requirements && errors.requirements}
+            />
+            <EnhancedEditor
+              id="description"
+              placeholder={"Description..."}
+              name="description"
+              getContent={(value) => {
+                setDescription(value);
+              }}
             />
             <FormControlLabel
               label="Requires Asset Opt In"
@@ -256,7 +270,12 @@ export const ServiceManager = () => {
                   width: "100%",
                 }}
               />
-
+            </Typography>
+            <br />
+            <Typography variant="body2">
+              <b>  Description:</b>
+              <br />
+              {htmlToReactParser.parse(selectedService?.Description)}
             </Typography>
           </CardContent>
         </Card>
@@ -306,7 +325,7 @@ export const ServiceManager = () => {
             ui: {
               maxHeight: "100%"
             },
-            ignoreKeys: ["__v", "Requirements", "URL", "Endpoint", "Creator ID"],
+            ignoreKeys: ["__v", "Requirements", "URL", "Endpoint", "Creator ID", "Description"],
             toolbarActions: [
               {
                 label: "Create Service",

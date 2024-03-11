@@ -1,7 +1,7 @@
 class API {
   constructor() {
     this.tinyMCE = {
-      key: "esf4wixekrxxlq0658t3wbxu2jocwtm2p8pykr8oqh2kkuol"
+      key: "tcyb12muo7i8jjij0tp4se50sg1on1g7xnu884d7wat3ldz5"
     };
     this.twilio = {
       "twilioAccountSID": "",
