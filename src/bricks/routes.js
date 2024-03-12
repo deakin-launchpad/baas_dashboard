@@ -6,7 +6,7 @@ import { LayoutConfig } from "constants/index";
 import { LoginContext } from "contexts";
 import PropTypes from "prop-types";
 import { useContext } from "react";
-import { HashRouter, Navigate, Route } from "react-router-dom";
+import { Routes, Navigate, Route } from "react-router-dom";
 import {
   AuthCallback,
   Example,
@@ -63,7 +63,7 @@ export const AppRoutes = (props) => {
       : "/home";
   if (loginStatus === undefined) return <LoadingScreen />;
   return (
-    <HashRouter>
+    <Routes>
       <Route
         exact
         path="/"
@@ -233,6 +233,6 @@ export const AppRoutes = (props) => {
           </AuthRoute>
         }
       />
-    </HashRouter>
+    </Routes>
   );
 };
