@@ -79,7 +79,7 @@ export const Login = () => {
               SChare
             </Typography>
             <Typography variant="h5" component="h5" color="white">
-              The SaaS of Blockchain
+              The Platform for Blockchain Smart Contracts Creation Service
             </Typography>
           </Box>
           <Box sx={{ position: "absolute", zIndex: 1, left: 15, bottom: 40 }}>

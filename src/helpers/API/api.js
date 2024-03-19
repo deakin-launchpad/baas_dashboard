@@ -251,7 +251,7 @@ class API {
    * @returns {Object} responseObj
    */
   async uploadDocument(data) {
-    return await axiosInstance
+    return axiosInstance
       .post("upload/uploadDocument", data, {
         headers: {
           "Content-Type": "multipart/form-data; boundary='boundary'",
@@ -269,7 +269,7 @@ class API {
    * @returns {Object} responseObj
    */
   async uploadImage(data) {
-    return await axiosInstance
+    return axiosInstance
       .post("upload/uploadImage", data, {
         headers: {
           "Content-Type": "multipart/form-data; boundary='boundary'",
@@ -281,16 +281,22 @@ class API {
       .catch((error) => errorHelper(error));
   }
 
-  // createDataEntry(data) {
-  //   return axiosInstance
-  //     .post("data/createDataEntry", data, {
-  //       headers: {
-  //         authorization: "Bearer " + AccessToken,
-  //       },
-  //     })
-  //     .then(() => generateSuccess(AccessToken))
-  //     .catch((error) => errorHelper(error));
-  // }
+  async addApiKey(name) {
+    return axiosInstance
+      .put(
+        "user/addService",
+        { "name": name },
+        {
+          headers: {
+            authorization: "Bearer " + AccessToken,
+          },
+        }
+      )
+      .then((response) => {
+        return generateSuccess(response.data.data);
+      })
+      .catch((error) => errorHelper(error));
+  }
 }
 const instance = new API();
 export default instance;

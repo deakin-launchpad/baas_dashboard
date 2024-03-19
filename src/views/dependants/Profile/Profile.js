@@ -1,4 +1,4 @@
-import { Box, InputLabel, TextField, Button, Paper, Grid } from "@mui/material";
+import { Box, InputLabel, TextField, Button, Paper, Grid, Typography } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
 import { API } from "helpers";
 import { notify } from "components/index";
@@ -6,6 +6,8 @@ import Avatar from "@mui/material/Avatar";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useFormik, Formik } from "formik";
 import * as Yup from "yup";
+import ApiKeyForm from "./ApiKeyForm";
+import ApiKeyDetailsModal from './ApiKeyDetailsModal';
 
 export const Profile = () => {
   const [currentUser, setCurrentUser] = useState({});
@@ -18,6 +20,10 @@ export const Profile = () => {
     researchInterests: "",
   });
   const [editing, setEditing] = useState(false);
+  const [apiKeys, setApiKeys] = useState([]);
+  const [showApiKeyForm, setShowApiKeyForm] = useState(false);
+  const [apiKeyData, setApiKeyData] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
 
   const pictureChangeHandle = async (event) => {
     if (event.target.files[0]) {
@@ -28,6 +34,23 @@ export const Profile = () => {
         setProfilePicture(response.data.imageFileURL.original);
       }
     }
+  };
+
+  const handleCopyApiKey = (apiKey) => {
+    // Logic to copy API key to clipboard
+    navigator.clipboard.writeText(apiKey);
+    // You might want to show a notification that the key has been copied
+  };
+
+  const handleCreateApiKey = async (name) => {
+    const response = await API.addApiKey(name);
+    if (response.success) {
+      setApiKeyData(response.data);
+      setOpenModal(true);
+    } else {
+      notify("Failed to Create new API key");
+    }
+    setShowApiKeyForm(false);
   };
 
   const formik = useFormik({
@@ -72,6 +95,7 @@ export const Profile = () => {
       setInitialValue(_initialValues);
       setCurrentUser(res);
       setProfilePicture(res.picture);
+      setApiKeys(response.data.apiKeys);
     } else {
       setCurrentUser({});
       notify("Failed to Fetch User Profile");
@@ -334,6 +358,44 @@ export const Profile = () => {
     <Box sx={{ ml: 4 }}>
       <Paper elevation={2} sx={{ py: 3, px: 12 }}>
         {userProfileForm}
+        {/* Display API keys */}
+        <Box sx={{ mt: 3 }}>
+          {apiKeys?.map((keyObject, index) => (
+            <Paper key={index} elevation={1} sx={{ p: 2, my: 1 }}>
+              <Typography variant="subtitle1">Name: {keyObject.name}</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                <Typography variant="body1" sx={{ mr: 2 }}>
+                  API Key: {keyObject.apiKey.substring(0, 3)}...{' '}
+                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => handleCopyApiKey(keyObject.apiKey)}
+                >
+                  Copy
+                </Button>
+              </Box>
+            </Paper>
+          ))}
+          {/* Button to show/hide API key form */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setShowApiKeyForm(!showApiKeyForm)}
+            sx={{ mt: 3 }}
+          >
+            {showApiKeyForm ? 'Cancel' : 'Create New API Key'}
+          </Button>
+
+          {/* Form for creating new API key */}
+          {showApiKeyForm && <ApiKeyForm onCreateApiKey={handleCreateApiKey} />}
+
+          {/* Modal for displaying API key details */}
+          <ApiKeyDetailsModal
+            open={openModal}
+            onClose={() => setOpenModal(false)}
+            apiKeyData={apiKeyData}
+          />
+        </Box>
       </Paper>
     </Box>
   );
