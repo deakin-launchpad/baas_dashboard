@@ -245,7 +245,6 @@ export const JobManager = () => {
 
     const data = {
       jobName: values.jobName,
-      endpoint: selectedService.url,
       serviceID: selectedService._id,
       datafileURL: {
         url: values.downloadableURL,

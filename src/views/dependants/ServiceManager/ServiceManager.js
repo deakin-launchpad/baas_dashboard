@@ -28,7 +28,6 @@ export const ServiceManager = () => {
     const response = await API.getService();
     if (response.success) {
       const res = response.data.data;
-      console.log(res);
       let result = [];
       res.map((item) => {
         let data = {
